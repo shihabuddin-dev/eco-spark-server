@@ -1,0 +1,34 @@
+enum IdeaStatus {
+  DRAFT
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model Idea {
+  id               String     @id @default(uuid())
+  title            String
+  problemStatement String
+  proposedSolution String
+  description      String
+  images           String[]
+  isPaid           Boolean    @default(false)
+  price            Float?
+  status           IdeaStatus @default(DRAFT)
+  adminFeedback    String?
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  votes    Vote[]
+  comments Comment[]
+  payments Payment[]
+
+  @@map("ideas")
+}

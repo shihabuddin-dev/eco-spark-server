@@ -1,0 +1,20 @@
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
+}
+
+model Vote {
+  id       String   @id @default(uuid())
+  voteType VoteType
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  ideaId String
+  idea   Idea   @relation(fields: [ideaId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, ideaId])
+  @@map("votes")
+}
