@@ -5,8 +5,8 @@ import { sendResponse } from '../../shared/sendResponse';
 import { PaymentService } from './payment.service';
 
 const createCheckoutSession = catchAsync(async (req: Request, res: Response) => {
-    const { ideaId } = req.body;
-    const result = await PaymentService.createCheckoutSession(req.user.userId, ideaId);
+    const { ideaId, isProPlan } = req.body;
+    const result = await PaymentService.createCheckoutSession(req.user.userId, ideaId, isProPlan);
     sendResponse(res, {
         httpStatusCode: status.OK,
         success: true,

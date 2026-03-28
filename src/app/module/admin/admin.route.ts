@@ -16,6 +16,7 @@ router.get('/dashboard', AdminController.getDashboardStats);
 router.get('/ideas', AdminController.getAllIdeas);
 router.patch('/ideas/:id/approve', AdminController.approveIdea);
 router.patch('/ideas/:id/reject', validateRequest(AdminValidation.rejectIdeaValidation), AdminController.rejectIdea);
+router.patch('/ideas/:id/status', AdminController.changeIdeaStatus);
 router.delete('/ideas/:id', AdminController.deleteIdea);
 
 // User Management

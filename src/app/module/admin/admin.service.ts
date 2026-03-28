@@ -109,6 +109,38 @@ const rejectIdea = async (ideaId: string, feedback: string) => {
     return updated;
 };
 
+const changeIdeaStatus = async (ideaId: string, newStatus: any, feedback?: string) => {
+    const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
+
+    if (!idea) {
+        throw new AppError(status.NOT_FOUND, 'Idea not found');
+    }
+
+    if (newStatus === 'REJECTED' && (!feedback || feedback.trim().length === 0)) {
+        throw new AppError(status.BAD_REQUEST, 'Feedback is required when changing status to REJECTED');
+    }
+
+    const data: any = { status: newStatus };
+    
+    // Clear feedback if not rejected
+    if (newStatus !== 'REJECTED') {
+        data.adminFeedback = null;
+    } else {
+        data.adminFeedback = feedback;
+    }
+
+    const updated = await prisma.idea.update({
+        where: { id: ideaId },
+        data,
+        include: {
+            category: true,
+            author: { select: { id: true, name: true, email: true } },
+        },
+    });
+
+    return updated;
+};
+
 const deleteIdea = async (ideaId: string) => {
     const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
 
@@ -250,6 +282,7 @@ export const AdminService = {
     getAllIdeas,
     approveIdea,
     rejectIdea,
+    changeIdeaStatus,
     deleteIdea,
     getAllUsers,
     updateUserStatus,

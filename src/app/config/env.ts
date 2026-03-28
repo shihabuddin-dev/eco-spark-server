@@ -14,6 +14,11 @@ interface EnvConfig {
     STRIPE_SECRET_KEY: string;
     BETTER_AUTH_SECRET: string;
     BETTER_AUTH_URL: string;
+    EMAIL_SENDER_SMTP_USER: string;
+    EMAIL_SENDER_SMTP_PASS: string;
+    EMAIL_SENDER_SMTP_HOST: string;
+    EMAIL_SENDER_SMTP_PORT: string;
+    EMAIL_SENDER_SMTP_FROM: string;
 }
 
 
@@ -28,7 +33,12 @@ const loadEnvVariables = (): EnvConfig => {
         "JWT_EXPIRES_IN",
         "STRIPE_SECRET_KEY",
         "BETTER_AUTH_SECRET",
-        "BETTER_AUTH_URL"
+        "BETTER_AUTH_URL",
+        "EMAIL_SENDER_SMTP_USER",
+        "EMAIL_SENDER_SMTP_PASS",
+        "EMAIL_SENDER_SMTP_HOST",
+        "EMAIL_SENDER_SMTP_PORT",
+        "EMAIL_SENDER_SMTP_FROM",
     ]
 
     requireEnvVariable.forEach((variable) => {
@@ -47,6 +57,11 @@ const loadEnvVariables = (): EnvConfig => {
         STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY as string,
         BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET as string,
         BETTER_AUTH_URL: process.env.BETTER_AUTH_URL as string,
+        EMAIL_SENDER_SMTP_USER: process.env.EMAIL_SENDER_SMTP_USER as string,
+        EMAIL_SENDER_SMTP_PASS: process.env.EMAIL_SENDER_SMTP_PASS as string,
+        EMAIL_SENDER_SMTP_HOST: process.env.EMAIL_SENDER_SMTP_HOST as string,
+        EMAIL_SENDER_SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT as string,
+        EMAIL_SENDER_SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM as string,
     }
 }
 
