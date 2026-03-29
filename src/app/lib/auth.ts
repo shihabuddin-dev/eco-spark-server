@@ -38,12 +38,17 @@ export const auth = betterAuth({
     },
     advanced: {
       cookiePrefix: "better-auth",
-      useSecureCookies: process.env.NODE_ENV === "production",
+      useSecureCookies: true, // Mandatory for SameSite=None
       crossSubDomainCookies: {
         enabled: false,
+      },
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+      },
+      disableCSRFCheck: true, // Allow requests without Origin header (Postman, mobile apps, etc.)
     },
-    disableCSRFCheck: true, // Allow requests without Origin header (Postman, mobile apps, etc.)
-  },
 });
 
 const SALT_ROUNDS = 12;

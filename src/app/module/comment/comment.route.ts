@@ -4,7 +4,7 @@ import { checkAuth } from '../../middleware/checkAuth';
 import { validateRequest } from '../../middleware/validateRequest';
 import { CommentValidation } from './comment.validation';
 
-const router = Router();
+const router: Router = Router();
 
 // Public — get comments for an idea
 router.get('/ideas/:ideaId', CommentController.getCommentsByIdeaId);

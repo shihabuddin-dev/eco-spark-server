@@ -54,7 +54,7 @@ const getAllIdeas = async (query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPages: Math.ceil(total / limitNum),
+            totalPage: Math.ceil(total / limitNum),
         },
     };
 };
@@ -209,7 +209,7 @@ const getAllUsers = async (query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPages: Math.ceil(total / limitNum),
+            totalPage: Math.ceil(total / limitNum),
         },
     };
 };
@@ -256,7 +256,8 @@ const getDashboardStats = async () => {
         pendingIdeas,
         rejectedIdeas,
         totalCategories,
-        totalPayments,
+        recentIdeas,
+        payments,
     ] = await Promise.all([
         prisma.user.count(),
         prisma.idea.count(),
@@ -264,17 +265,34 @@ const getDashboardStats = async () => {
         prisma.idea.count({ where: { status: 'UNDER_REVIEW' } }),
         prisma.idea.count({ where: { status: 'REJECTED' } }),
         prisma.category.count(),
-        prisma.payment.count({ where: { status: 'COMPLETED' } }),
+        prisma.idea.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                author: { select: { name: true, image: true } },
+                category: { select: { name: true } },
+            },
+        }),
+        prisma.payment.findMany({
+            where: { status: 'COMPLETED' },
+            select: { amount: true },
+        }),
     ]);
+
+    // Calculate total revenue from payments
+    const totalRevenue = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
     return {
         totalUsers,
         totalIdeas,
-        approvedIdeas,
-        pendingIdeas,
-        rejectedIdeas,
+        totalRevenue,
         totalCategories,
-        totalPayments,
+        statusCounts: {
+            APPROVED: approvedIdeas,
+            UNDER_REVIEW: pendingIdeas,
+            REJECTED: rejectedIdeas,
+        },
+        recentIdeas,
     };
 };
 

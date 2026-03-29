@@ -348,7 +348,7 @@ var getAllIdeas = async (query) => {
       page: pageNum,
       limit: limitNum,
       total,
-      totalPages: Math.ceil(total / limitNum)
+      totalPage: Math.ceil(total / limitNum)
     }
   };
 };
@@ -469,7 +469,7 @@ var getAllUsers = async (query) => {
       page: pageNum,
       limit: limitNum,
       total,
-      totalPages: Math.ceil(total / limitNum)
+      totalPage: Math.ceil(total / limitNum)
     }
   };
 };
@@ -505,7 +505,8 @@ var getDashboardStats = async () => {
     pendingIdeas,
     rejectedIdeas,
     totalCategories,
-    totalPayments
+    recentIdeas,
+    payments
   ] = await Promise.all([
     prisma.user.count(),
     prisma.idea.count(),
@@ -513,16 +514,31 @@ var getDashboardStats = async () => {
     prisma.idea.count({ where: { status: "UNDER_REVIEW" } }),
     prisma.idea.count({ where: { status: "REJECTED" } }),
     prisma.category.count(),
-    prisma.payment.count({ where: { status: "COMPLETED" } })
+    prisma.idea.findMany({
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      include: {
+        author: { select: { name: true, image: true } },
+        category: { select: { name: true } }
+      }
+    }),
+    prisma.payment.findMany({
+      where: { status: "COMPLETED" },
+      select: { amount: true }
+    })
   ]);
+  const totalRevenue = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   return {
     totalUsers,
     totalIdeas,
-    approvedIdeas,
-    pendingIdeas,
-    rejectedIdeas,
+    totalRevenue,
     totalCategories,
-    totalPayments
+    statusCounts: {
+      APPROVED: approvedIdeas,
+      UNDER_REVIEW: pendingIdeas,
+      REJECTED: rejectedIdeas
+    },
+    recentIdeas
   };
 };
 var AdminService = {
@@ -651,7 +667,6 @@ dotenv.config();
 var loadEnvVariables = () => {
   const requireEnvVariable = [
     "NODE_ENV",
-    "PORT",
     "DATABASE_URL",
     "FRONTEND_URL",
     "JWT_SECRET",
@@ -667,12 +682,15 @@ var loadEnvVariables = () => {
   ];
   requireEnvVariable.forEach((variable) => {
     if (!process.env[variable]) {
-      throw new AppError_default(status3.INTERNAL_SERVER_ERROR, `Environment variable ${variable} is required but not set in .env file.`);
+      throw new AppError_default(
+        status3.INTERNAL_SERVER_ERROR,
+        `Environment variable ${variable} is required but not set in .env file.`
+      );
     }
   });
   return {
     NODE_ENV: process.env.NODE_ENV,
-    PORT: process.env.PORT,
+    PORT: process.env.PORT || "5000",
     DATABASE_URL: process.env.DATABASE_URL,
     FRONTEND_URL: process.env.FRONTEND_URL,
     JWT_SECRET: process.env.JWT_SECRET,
@@ -715,7 +733,29 @@ var auth = betterAuth({
   },
   secret: envVars.BETTER_AUTH_SECRET,
   baseURL: envVars.BETTER_AUTH_URL,
-  trustedOrigins: [envVars.FRONTEND_URL]
+  trustedOrigins: [envVars.FRONTEND_URL],
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60
+      // 5 minutes
+    }
+  },
+  advanced: {
+    cookiePrefix: "better-auth",
+    useSecureCookies: true,
+    // Mandatory for SameSite=None
+    crossSubDomainCookies: {
+      enabled: false
+    },
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+      httpOnly: true
+    },
+    disableCSRFCheck: true
+    // Allow requests without Origin header (Postman, mobile apps, etc.)
+  }
 });
 var SALT_ROUNDS = 12;
 var hashPassword = async (password) => {
@@ -1238,7 +1278,7 @@ var getAllApprovedIdeas = async (query) => {
       page: pageNum,
       limit: limitNum,
       total,
-      totalPages: Math.ceil(total / limitNum)
+      totalPage: Math.ceil(total / limitNum)
     }
   };
 };
@@ -1361,7 +1401,7 @@ var getMyIdeas = async (authorId, query) => {
       page: pageNum,
       limit: limitNum,
       total,
-      totalPages: Math.ceil(total / limitNum)
+      totalPage: Math.ceil(total / limitNum)
     }
   };
 };
@@ -2551,6 +2591,12 @@ var handleZodError = (err) => {
 
 // src/app/middleware/globalErrorHandler.ts
 var globalErrorHandler = async (err, req, res, next) => {
+  console.error("Global Error Handler:", {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method
+  });
   if (envVars.NODE_ENV === "development") {
     console.log("Error from Global Error Handler", err);
   }
@@ -2647,7 +2693,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      const isAllowed = allowedOrigins.includes(origin) || /^https:\/\/medixo-client.*\.vercel\.app$/.test(origin) || /^https:\/\/.*\.vercel\.app$/.test(origin);
+      const isAllowed = allowedOrigins.includes(origin) || /^https:\/\/eco-spark-client.*\.vercel\.app$/.test(origin) || /^https:\/\/.*\.vercel\.app$/.test(origin);
       if (isAllowed) {
         callback(null, true);
       } else {
@@ -2677,17 +2723,23 @@ var app_default = app;
 
 // src/server.ts
 var port = process.env.PORT || 5e3;
-var startServer = async () => {
-  try {
-    await prisma.$connect();
-    console.log("Connected to the database successfully");
-    app_default.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
-    });
-  } catch (error) {
-    console.error("Error starting the server:", error);
-    await prisma.$disconnect();
-    process.exit(1);
-  }
+var server_default = app_default;
+if (!process.env.VERCEL) {
+  const startServer = async () => {
+    try {
+      await prisma.$connect();
+      console.log("Connected to the database successfully");
+      app_default.listen(port, () => {
+        console.log(`Server is running on http://localhost:${port}`);
+      });
+    } catch (error) {
+      console.error("Error starting the server:", error);
+      await prisma.$disconnect();
+      process.exit(1);
+    }
+  };
+  startServer();
+}
+export {
+  server_default as default
 };
-startServer();

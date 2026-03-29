@@ -14,6 +14,14 @@ import { TErrorResponse, TErrorSources } from "../interfaces/error.interface";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const globalErrorHandler = async (err: any, req: Request, res: Response, next: NextFunction) => {
+    // Always log errors in production/development for debugging Vercel logs
+    console.error("Global Error Handler:", {
+        message: err.message,
+        stack: err.stack,
+        path: req.path,
+        method: req.method,
+    });
+
     if (envVars.NODE_ENV === 'development') {
         console.log("Error from Global Error Handler", err);
     }

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PaymentController } from './payment.controller';
 import { checkAuth } from '../../middleware/checkAuth';
 
-const router = Router();
+const router: Router = Router();
 
 // Protected routes
 router.post('/create-checkout', checkAuth('MEMBER', 'ADMIN'), PaymentController.createCheckoutSession);

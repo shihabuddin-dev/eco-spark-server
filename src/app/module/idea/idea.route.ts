@@ -5,7 +5,7 @@ import { validateRequest } from '../../middleware/validateRequest';
 import { IdeaValidation } from './idea.validation';
 import { optionalAuth } from '../../middleware/optionalAuth';
 
-const router = Router();
+const router: Router = Router();
 
 // Public routes
 router.get('/', IdeaController.getAllApprovedIdeas);

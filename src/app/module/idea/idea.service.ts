@@ -146,7 +146,7 @@ const getAllApprovedIdeas = async (query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPages: Math.ceil(total / limitNum),
+            totalPage: Math.ceil(total / limitNum),
         },
     };
 };
@@ -285,7 +285,7 @@ const getMyIdeas = async (authorId: string, query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPages: Math.ceil(total / limitNum),
+            totalPage: Math.ceil(total / limitNum),
         },
     };
 };

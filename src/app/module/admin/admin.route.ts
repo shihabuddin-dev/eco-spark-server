@@ -4,7 +4,7 @@ import { checkAuth } from '../../middleware/checkAuth';
 import { validateRequest } from '../../middleware/validateRequest';
 import { AdminValidation } from './admin.validation';
 
-const router = Router();
+const router: Router = Router();
 
 // All admin routes are protected — ADMIN only
 router.use(checkAuth('ADMIN'));
