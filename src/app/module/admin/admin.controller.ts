@@ -48,6 +48,17 @@ const deleteIdea = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const changeIdeaStatus = catchAsync(async (req: Request, res: Response) => {
+  const { status: newStatus, feedback } = req.body;
+  const result = await AdminService.changeIdeaStatus(req.params.id as string, newStatus, feedback);
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: `Idea status changed to ${newStatus}`,
+    data: result,
+  });
+});
+
 // ========== USER MANAGEMENT ==========
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
@@ -100,6 +111,7 @@ export const AdminController = {
   approveIdea,
   rejectIdea,
   deleteIdea,
+  changeIdeaStatus,
   getAllUsers,
   updateUserStatus,
   updateUserRole,

@@ -13,8 +13,8 @@ model Payment {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  ideaId String
-  idea   Idea   @relation(fields: [ideaId], references: [id])
+  ideaId String?
+  idea   Idea?   @relation(fields: [ideaId], references: [id])
 
   createdAt DateTime @default(now())
 

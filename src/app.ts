@@ -1,20 +1,52 @@
-import express, { Application, Request, Response } from 'express';
-import { IndexRoutes } from './app/routes';
-import cors from 'cors';
-import { envVars } from './app/config/env';
-import { globalErrorHandler } from './app/middleware/globalErrorHandler';
-import { notFound } from './app/middleware/notFound';
-import { toNodeHandler } from 'better-auth/node';
-import { auth } from './app/lib/auth';
+import express, { Application, Request, Response } from "express";
+import { IndexRoutes } from "./app/routes";
+import cors from "cors";
+import { envVars } from "./app/config/env";
+import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
+import { notFound } from "./app/middleware/notFound";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./app/lib/auth";
 
 const app: Application = express();
 
-app.use(cors({
-    origin: [envVars.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:5000'],
+// app.use(cors({
+//     origin: [envVars.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:5000'],
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+// }));
+
+const allowedOrigins = [
+  envVars.FRONTEND_URL! || "http://localhost:3000",
+  "http://localhost:5000",
+  "https://eco-spark-client.vercel.app",
+  "https://eco-spark-server.vercel.app",
+].filter(Boolean); // Remove undefined values
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+
+      // Check if origin is in allowedOrigins or matches Vercel preview pattern
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        /^https:\/\/eco-spark-client.*\.vercel\.app$/.test(origin) ||
+        /^https:\/\/.*\.vercel\.app$/.test(origin); // Any Vercel deployment
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    exposedHeaders: ["Set-Cookie"],
+  }),
+);
 
 // Enable URL-encoded form data parsing
 app.use(express.urlencoded({ extended: true }));
@@ -29,18 +61,18 @@ app.use(express.json());
 // app.all("/api/auth/*", (req, res) => {
 //     return toNodeHandler(auth)(req, res);
 // });
-app.use("/api/auth", toNodeHandler(auth))
+app.use("/api/auth", toNodeHandler(auth));
 
 // Routes
-app.use('/api/v1', IndexRoutes);
+app.use("/api/v1", IndexRoutes);
 
 // Basic route
-app.get('/', (_req: Request, res: Response) => {
-    res.json({
-        success: true,
-        message: 'EcoSpark API is running.....',
-        version: '1.0.0',
-    });
+app.get("/", (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: "EcoSpark API is running.....",
+    version: "1.0.0",
+  });
 });
 
 // Not Found handler

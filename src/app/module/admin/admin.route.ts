@@ -4,7 +4,7 @@ import { checkAuth } from '../../middleware/checkAuth';
 import { validateRequest } from '../../middleware/validateRequest';
 import { AdminValidation } from './admin.validation';
 
-const router = Router();
+const router: Router = Router();
 
 // All admin routes are protected — ADMIN only
 router.use(checkAuth('ADMIN'));
@@ -16,6 +16,7 @@ router.get('/dashboard', AdminController.getDashboardStats);
 router.get('/ideas', AdminController.getAllIdeas);
 router.patch('/ideas/:id/approve', AdminController.approveIdea);
 router.patch('/ideas/:id/reject', validateRequest(AdminValidation.rejectIdeaValidation), AdminController.rejectIdea);
+router.patch('/ideas/:id/status', AdminController.changeIdeaStatus);
 router.delete('/ideas/:id', AdminController.deleteIdea);
 
 // User Management

@@ -13,6 +13,12 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
+    socialProviders: {
+        google: {
+            clientId: envVars.GOOGLE_CLIENT_ID,
+            clientSecret: envVars.GOOGLE_CLIENT_SECRET,
+        },
+    },
     user: {
         additionalFields: {
             role: {
@@ -30,6 +36,26 @@ export const auth = betterAuth({
     secret: envVars.BETTER_AUTH_SECRET,
     baseURL: envVars.BETTER_AUTH_URL,
     trustedOrigins: [envVars.FRONTEND_URL],
+    session: {
+      cookieCache: {
+        enabled: true,
+        maxAge: 5 * 60, // 5 minutes
+      },
+    },
+    advanced: {
+      callbackURL: envVars.FRONTEND_URL,
+      cookiePrefix: "better-auth",
+      useSecureCookies: true, // Mandatory for SameSite=None
+      crossSubDomainCookies: {
+        enabled: false,
+      },
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+      },
+      disableCSRFCheck: true, // Allow requests without Origin header (Postman, mobile apps, etc.)
+    },
 });
 
 const SALT_ROUNDS = 12;

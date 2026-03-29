@@ -7,8 +7,9 @@ import { VoteRoutes } from '../module/vote/vote.route';
 import { CommentRoutes } from '../module/comment/comment.route';
 import { PaymentRoutes } from '../module/payment/payment.route';
 import { NewsletterRoutes } from '../module/newsletter/newsletter.route';
+import { ContactRoutes } from '../module/contact/contact.route';
 
-const router = Router();
+const router: Router = Router();
 
 router.use('/auth', AuthRoutes);
 router.use('/categories', CategoryRoutes);
@@ -18,5 +19,6 @@ router.use('/comments', CommentRoutes);
 router.use('/payments', PaymentRoutes);
 router.use('/newsletter', NewsletterRoutes);
 router.use('/admin', AdminRoutes);
+router.use('/contact', ContactRoutes);
 
 export const IndexRoutes = router;

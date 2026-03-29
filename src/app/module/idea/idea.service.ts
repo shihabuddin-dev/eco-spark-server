@@ -48,13 +48,13 @@ const getAllApprovedIdeas = async (query: any) => {
         sortBy = 'createdAt',
         sortOrder = 'desc',
         page = '1',
-        limit = '10',
+        limit = '12',
         minVotes,
         author,
     } = query;
 
     const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
-    const limitNum = Math.max(1, parseInt(limit as string, 10) || 10);
+    const limitNum = Math.max(1, parseInt(limit as string, 10) || 12);
     const skip = (pageNum - 1) * limitNum;
 
     const where: Prisma.IdeaWhereInput = {
@@ -146,7 +146,7 @@ const getAllApprovedIdeas = async (query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPages: Math.ceil(total / limitNum),
+            totalPage: Math.ceil(total / limitNum),
         },
     };
 };
@@ -254,10 +254,10 @@ const getIdeaById = async (id: string, userId?: string) => {
 };
 
 const getMyIdeas = async (authorId: string, query: any) => {
-    const { status: ideaStatus, page = '1', limit = '10' } = query;
+    const { status: ideaStatus, page = '1', limit = '12' } = query;
 
     const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
-    const limitNum = Math.max(1, parseInt(limit as string, 10) || 10);
+    const limitNum = Math.max(1, parseInt(limit as string, 10) || 12);
     const skip = (pageNum - 1) * limitNum;
 
     const where: Prisma.IdeaWhereInput = { authorId };
@@ -285,7 +285,7 @@ const getMyIdeas = async (authorId: string, query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPages: Math.ceil(total / limitNum),
+            totalPage: Math.ceil(total / limitNum),
         },
     };
 };

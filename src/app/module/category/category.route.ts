@@ -4,7 +4,7 @@ import { checkAuth } from '../../middleware/checkAuth';
 import { validateRequest } from '../../middleware/validateRequest';
 import { CategoryValidation } from './category.validation';
 
-const router = Router();
+const router: Router = Router();
 
 // Public
 router.get('/', CategoryController.getAllCategories);

@@ -11,7 +11,7 @@ const getAllIdeas = async (query: any) => {
         status: ideaStatus,
         searchTerm,
         page = '1',
-        limit = '10',
+        limit = '12',
     } = query;
 
     const pageNum = parseInt(page as string, 10);
@@ -54,7 +54,7 @@ const getAllIdeas = async (query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPages: Math.ceil(total / limitNum),
+            totalPage: Math.ceil(total / limitNum),
         },
     };
 };
@@ -109,6 +109,38 @@ const rejectIdea = async (ideaId: string, feedback: string) => {
     return updated;
 };
 
+const changeIdeaStatus = async (ideaId: string, newStatus: any, feedback?: string) => {
+    const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
+
+    if (!idea) {
+        throw new AppError(status.NOT_FOUND, 'Idea not found');
+    }
+
+    if (newStatus === 'REJECTED' && (!feedback || feedback.trim().length === 0)) {
+        throw new AppError(status.BAD_REQUEST, 'Feedback is required when changing status to REJECTED');
+    }
+
+    const data: any = { status: newStatus };
+    
+    // Clear feedback if not rejected
+    if (newStatus !== 'REJECTED') {
+        data.adminFeedback = null;
+    } else {
+        data.adminFeedback = feedback;
+    }
+
+    const updated = await prisma.idea.update({
+        where: { id: ideaId },
+        data,
+        include: {
+            category: true,
+            author: { select: { id: true, name: true, email: true } },
+        },
+    });
+
+    return updated;
+};
+
 const deleteIdea = async (ideaId: string) => {
     const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
 
@@ -128,7 +160,7 @@ const deleteIdea = async (ideaId: string) => {
 // ========== USER MANAGEMENT ==========
 
 const getAllUsers = async (query: any) => {
-    const { searchTerm, role, status: userStatus, page = '1', limit = '10' } = query;
+    const { searchTerm, role, status: userStatus, page = '1', limit = '12' } = query;
 
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
@@ -177,7 +209,7 @@ const getAllUsers = async (query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPages: Math.ceil(total / limitNum),
+            totalPage: Math.ceil(total / limitNum),
         },
     };
 };
@@ -224,7 +256,8 @@ const getDashboardStats = async () => {
         pendingIdeas,
         rejectedIdeas,
         totalCategories,
-        totalPayments,
+        recentIdeas,
+        payments,
     ] = await Promise.all([
         prisma.user.count(),
         prisma.idea.count(),
@@ -232,17 +265,34 @@ const getDashboardStats = async () => {
         prisma.idea.count({ where: { status: 'UNDER_REVIEW' } }),
         prisma.idea.count({ where: { status: 'REJECTED' } }),
         prisma.category.count(),
-        prisma.payment.count({ where: { status: 'COMPLETED' } }),
+        prisma.idea.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                author: { select: { name: true, image: true } },
+                category: { select: { name: true } },
+            },
+        }),
+        prisma.payment.findMany({
+            where: { status: 'COMPLETED' },
+            select: { amount: true },
+        }),
     ]);
+
+    // Calculate total revenue from payments
+    const totalRevenue = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
     return {
         totalUsers,
         totalIdeas,
-        approvedIdeas,
-        pendingIdeas,
-        rejectedIdeas,
+        totalRevenue,
         totalCategories,
-        totalPayments,
+        statusCounts: {
+            APPROVED: approvedIdeas,
+            UNDER_REVIEW: pendingIdeas,
+            REJECTED: rejectedIdeas,
+        },
+        recentIdeas,
     };
 };
 
@@ -250,6 +300,7 @@ export const AdminService = {
     getAllIdeas,
     approveIdea,
     rejectIdea,
+    changeIdeaStatus,
     deleteIdea,
     getAllUsers,
     updateUserStatus,
