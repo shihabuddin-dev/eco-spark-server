@@ -9,12 +9,45 @@ import { auth } from './app/lib/auth';
 
 const app: Application = express();
 
-app.use(cors({
-    origin: [envVars.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:5000'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+// app.use(cors({
+//     origin: [envVars.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:5000'],
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+// }));
+
+const allowedOrigins = [
+    envVars.FRONTEND_URL! || "http://localhost:3000",
+    "http://localhost:5000",
+    "https://eco-spark-client.vercel.app",
+    "https://eco-spark-server.vercel.app",
+].filter(Boolean); // Remove undefined values
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // Allow requests with no origin (mobile apps, Postman, etc.)
+            if (!origin) return callback(null, true);
+
+            // Check if origin is in allowedOrigins or matches Vercel preview pattern
+            const isAllowed =
+                allowedOrigins.includes(origin) ||
+                /^https:\/\/medixo-client.*\.vercel\.app$/.test(origin) ||
+                /^https:\/\/.*\.vercel\.app$/.test(origin); // Any Vercel deployment
+
+            if (isAllowed) {
+                callback(null, true);
+            } else {
+                callback(new Error(`Origin ${origin} not allowed by CORS`));
+            }
+        },
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+        exposedHeaders: ["Set-Cookie"],
+    }),
+);
+
 
 // Enable URL-encoded form data parsing
 app.use(express.urlencoded({ extended: true }));
