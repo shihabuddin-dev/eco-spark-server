@@ -13,6 +13,12 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
+    socialProviders: {
+        google: {
+            clientId: envVars.GOOGLE_CLIENT_ID,
+            clientSecret: envVars.GOOGLE_CLIENT_SECRET,
+        },
+    },
     user: {
         additionalFields: {
             role: {
@@ -37,6 +43,7 @@ export const auth = betterAuth({
       },
     },
     advanced: {
+      callbackURL: envVars.FRONTEND_URL,
       cookiePrefix: "better-auth",
       useSecureCookies: true, // Mandatory for SameSite=None
       crossSubDomainCookies: {

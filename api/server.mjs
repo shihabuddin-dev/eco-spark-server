@@ -678,7 +678,9 @@ var loadEnvVariables = () => {
     "EMAIL_SENDER_SMTP_PASS",
     "EMAIL_SENDER_SMTP_HOST",
     "EMAIL_SENDER_SMTP_PORT",
-    "EMAIL_SENDER_SMTP_FROM"
+    "EMAIL_SENDER_SMTP_FROM",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET"
   ];
   requireEnvVariable.forEach((variable) => {
     if (!process.env[variable]) {
@@ -702,7 +704,9 @@ var loadEnvVariables = () => {
     EMAIL_SENDER_SMTP_PASS: process.env.EMAIL_SENDER_SMTP_PASS,
     EMAIL_SENDER_SMTP_HOST: process.env.EMAIL_SENDER_SMTP_HOST,
     EMAIL_SENDER_SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT,
-    EMAIL_SENDER_SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM
+    EMAIL_SENDER_SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET
   };
 };
 var envVars = loadEnvVariables();
@@ -716,6 +720,12 @@ var auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true
+  },
+  socialProviders: {
+    google: {
+      clientId: envVars.GOOGLE_CLIENT_ID,
+      clientSecret: envVars.GOOGLE_CLIENT_SECRET
+    }
   },
   user: {
     additionalFields: {
@@ -742,6 +752,7 @@ var auth = betterAuth({
     }
   },
   advanced: {
+    callbackURL: envVars.FRONTEND_URL,
     cookiePrefix: "better-auth",
     useSecureCookies: true,
     // Mandatory for SameSite=None
@@ -2346,38 +2357,39 @@ var NewsletterRoutes = router8;
 import { Router as Router9 } from "express";
 
 // src/app/module/contact/contact.controller.ts
+import status20 from "http-status";
+
+// src/app/module/contact/contact.service.ts
 import status19 from "http-status";
-var handleContactInquiry = async (req, res) => {
-  try {
-    const { name, email, message } = req.body;
-    if (!name || !email || !message) {
-      return res.status(status19.BAD_REQUEST).json({
-        success: false,
-        message: "All fields (name, email, message) are required."
-      });
-    }
-    const html = EmailTemplate.contactEmailTemplate(name, email, message);
-    await EmailService.sendEmail(
-      envVars.EMAIL_SENDER_SMTP_USER,
-      // Send to the admin (shihabuddin.dev@gmail.com)
-      `New Contact Inquiry from ${name}`,
-      html
-    );
-    res.status(200).json({
-      success: true,
-      message: "Your message has been sent successfully. We will get back to you shortly!"
-    });
-  } catch (error) {
-    console.error("Email sending error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to send message. Please try again later.",
-      error: error.message
-    });
+var handleContactInquiry = async (payload) => {
+  const { name, email, message } = payload;
+  if (!name || !email || !message) {
+    throw new AppError_default(status19.BAD_REQUEST, "All fields (name, email, message) are required.");
   }
+  const html = EmailTemplate.contactEmailTemplate(name, email, message);
+  await EmailService.sendEmail(
+    envVars.EMAIL_SENDER_SMTP_USER,
+    // Send to the admin
+    `New Contact Inquiry from ${name}`,
+    html
+  );
+  return { message: "Your message has been sent successfully. We will get back to you shortly!" };
 };
-var ContactController = {
+var ContactService = {
   handleContactInquiry
+};
+
+// src/app/module/contact/contact.controller.ts
+var handleContactInquiry2 = catchAsync(async (req, res) => {
+  const result = await ContactService.handleContactInquiry(req.body);
+  sendResponse(res, {
+    httpStatusCode: status20.OK,
+    success: true,
+    message: result.message
+  });
+});
+var ContactController = {
+  handleContactInquiry: handleContactInquiry2
 };
 
 // src/app/module/contact/contact.route.ts
@@ -2402,46 +2414,46 @@ var IndexRoutes = router10;
 import cors from "cors";
 
 // src/app/middleware/globalErrorHandler.ts
-import status22 from "http-status";
+import status23 from "http-status";
 import z7 from "zod";
 
 // src/app/errorHelpers/handlePrismaErrors.ts
-import status20 from "http-status";
+import status21 from "http-status";
 var getStatusCodeFromPrismaError = (errorCode) => {
   if (errorCode === "P2002") {
-    return status20.CONFLICT;
+    return status21.CONFLICT;
   }
   if (["P2025", "P2001", "P2015", "P2018"].includes(errorCode)) {
-    return status20.NOT_FOUND;
+    return status21.NOT_FOUND;
   }
   if (["P1000", "P6002"].includes(errorCode)) {
-    return status20.UNAUTHORIZED;
+    return status21.UNAUTHORIZED;
   }
   if (["P1010", "P6010"].includes(errorCode)) {
-    return status20.FORBIDDEN;
+    return status21.FORBIDDEN;
   }
   if (errorCode === "P6003") {
-    return status20.PAYMENT_REQUIRED;
+    return status21.PAYMENT_REQUIRED;
   }
   if (["P1008", "P2004", "P6004"].includes(errorCode)) {
-    return status20.GATEWAY_TIMEOUT;
+    return status21.GATEWAY_TIMEOUT;
   }
   if (errorCode === "P5011") {
-    return status20.TOO_MANY_REQUESTS;
+    return status21.TOO_MANY_REQUESTS;
   }
   if (errorCode === "P6009") {
     return 413;
   }
   if (errorCode.startsWith("P1") || ["P2024", "P2037", "P6008"].includes(errorCode)) {
-    return status20.SERVICE_UNAVAILABLE;
+    return status21.SERVICE_UNAVAILABLE;
   }
   if (errorCode.startsWith("P2")) {
-    return status20.BAD_REQUEST;
+    return status21.BAD_REQUEST;
   }
   if (errorCode.startsWith("P3") || errorCode.startsWith("P4")) {
-    return status20.INTERNAL_SERVER_ERROR;
+    return status21.INTERNAL_SERVER_ERROR;
   }
-  return status20.INTERNAL_SERVER_ERROR;
+  return status21.INTERNAL_SERVER_ERROR;
 };
 var formatErrorMeta = (meta) => {
   if (!meta) return "";
@@ -2511,7 +2523,7 @@ var handlePrismaClientUnknownError = (error) => {
   ];
   return {
     success: false,
-    statusCode: status20.INTERNAL_SERVER_ERROR,
+    statusCode: status21.INTERNAL_SERVER_ERROR,
     message: `Prisma Client Unknown Request Error: ${mainMessage}`,
     errorSources
   };
@@ -2532,13 +2544,13 @@ var handlePrismaClientValidationError = (error) => {
   });
   return {
     success: false,
-    statusCode: status20.BAD_REQUEST,
+    statusCode: status21.BAD_REQUEST,
     message: `Prisma Client Validation Error: ${mainMessage}`,
     errorSources
   };
 };
 var handlerPrismaClientInitializationError = (error) => {
-  const statusCode = error.errorCode ? getStatusCodeFromPrismaError(error.errorCode) : status20.SERVICE_UNAVAILABLE;
+  const statusCode = error.errorCode ? getStatusCodeFromPrismaError(error.errorCode) : status21.SERVICE_UNAVAILABLE;
   const cleanMessage = error.message;
   cleanMessage.replace(/Invalid `.*?` invocation:?\s*/i, "");
   const lines = cleanMessage.split("\n").filter((line) => line.trim());
@@ -2563,16 +2575,16 @@ var handlerPrismaClientRustPanicError = () => {
   }];
   return {
     success: false,
-    statusCode: status20.INTERNAL_SERVER_ERROR,
+    statusCode: status21.INTERNAL_SERVER_ERROR,
     message: "Prisma Client Rust Panic Error: The database engine crashed due to a fatal error.",
     errorSources
   };
 };
 
 // src/app/errorHelpers/handleZodError.ts
-import status21 from "http-status";
+import status22 from "http-status";
 var handleZodError = (err) => {
-  const statusCode = status21.BAD_REQUEST;
+  const statusCode = status22.BAD_REQUEST;
   const message = "Zod Validation Error";
   const errorSources = [];
   err.issues.forEach((issue) => {
@@ -2601,7 +2613,7 @@ var globalErrorHandler = async (err, req, res, next) => {
     console.log("Error from Global Error Handler", err);
   }
   let errorSources = [];
-  let statusCode = status22.INTERNAL_SERVER_ERROR;
+  let statusCode = status23.INTERNAL_SERVER_ERROR;
   let message = "Internal Server Error";
   let stack = void 0;
   if (err instanceof prismaNamespace_exports.PrismaClientKnownRequestError) {
@@ -2651,7 +2663,7 @@ var globalErrorHandler = async (err, req, res, next) => {
       }
     ];
   } else if (err instanceof Error) {
-    statusCode = status22.INTERNAL_SERVER_ERROR;
+    statusCode = status23.INTERNAL_SERVER_ERROR;
     message = err.message;
     stack = err.stack;
     errorSources = [
@@ -2672,9 +2684,9 @@ var globalErrorHandler = async (err, req, res, next) => {
 };
 
 // src/app/middleware/notFound.ts
-import status23 from "http-status";
+import status24 from "http-status";
 var notFound = (req, res) => {
-  res.status(status23.NOT_FOUND).json({
+  res.status(status24.NOT_FOUND).json({
     success: false,
     message: `Route ${req.originalUrl} Not Found`
   });
