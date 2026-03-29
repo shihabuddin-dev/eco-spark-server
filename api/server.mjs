@@ -873,7 +873,7 @@ var register = async (payload) => {
       name: payload.name,
       email: payload.email,
       password: hashedPassword,
-      image: payload.profileImage
+      image: payload.profileImage ?? null
     },
     select: {
       id: true,

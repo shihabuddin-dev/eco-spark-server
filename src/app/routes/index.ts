@@ -9,7 +9,7 @@ import { PaymentRoutes } from '../module/payment/payment.route';
 import { NewsletterRoutes } from '../module/newsletter/newsletter.route';
 import { ContactRoutes } from '../module/contact/contact.route';
 
-const router = Router();
+const router: Router = Router();
 
 router.use('/auth', AuthRoutes);
 router.use('/categories', CategoryRoutes);
