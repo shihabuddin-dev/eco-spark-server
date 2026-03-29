@@ -311,7 +311,7 @@ var getAllIdeas = async (query) => {
     status: ideaStatus,
     searchTerm,
     page = "1",
-    limit = "10"
+    limit = "12"
   } = query;
   const pageNum = parseInt(page, 10);
   const limitNum = parseInt(limit, 10);
@@ -427,7 +427,7 @@ var deleteIdea = async (ideaId) => {
   return { message: "Idea and all related data deleted successfully" };
 };
 var getAllUsers = async (query) => {
-  const { searchTerm, role, status: userStatus, page = "1", limit = "10" } = query;
+  const { searchTerm, role, status: userStatus, page = "1", limit = "12" } = query;
   const pageNum = parseInt(page, 10);
   const limitNum = parseInt(limit, 10);
   const skip = (pageNum - 1) * limitNum;
@@ -1210,12 +1210,12 @@ var getAllApprovedIdeas = async (query) => {
     sortBy = "createdAt",
     sortOrder = "desc",
     page = "1",
-    limit = "10",
+    limit = "12",
     minVotes,
     author
   } = query;
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
-  const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+  const limitNum = Math.max(1, parseInt(limit, 10) || 12);
   const skip = (pageNum - 1) * limitNum;
   const where = {
     status: "APPROVED"
@@ -1385,9 +1385,9 @@ var getIdeaById = async (id, userId) => {
   };
 };
 var getMyIdeas = async (authorId, query) => {
-  const { status: ideaStatus, page = "1", limit = "10" } = query;
+  const { status: ideaStatus, page = "1", limit = "12" } = query;
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
-  const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+  const limitNum = Math.max(1, parseInt(limit, 10) || 12);
   const skip = (pageNum - 1) * limitNum;
   const where = { authorId };
   if (ideaStatus) {
