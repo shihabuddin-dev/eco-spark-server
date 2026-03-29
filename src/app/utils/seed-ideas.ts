@@ -1,0 +1,259 @@
+import { prisma } from "../lib/prisma";
+import { IdeaStatus } from "../../generated/prisma/client";
+
+const seedIdeas = async () => {
+    console.log("🌱 Creating/Updating 17 high-quality, detailed eco-friendly ideas...");
+
+    try {
+        const admin = await prisma.user.findUnique({ where: { email: "admin@ecospark.com" } });
+        if (!admin) {
+            console.error("❌ Admin user not found. Please run 'pnpm seed' first.");
+            return;
+        }
+
+        const categories = await prisma.category.findMany();
+        if (categories.length === 0) {
+            console.error("❌ Categories not found. Please run 'pnpm seed' first.");
+            return;
+        }
+
+        const getCatId = (name: string) => categories.find(c => c.name === name)?.id || categories[0]!.id;
+
+        const ideasData: any[] = [
+            {
+              "title": "Smart Solar Window Blinds",
+              "problemStatement": "Conventional windows in urban high-rises are a massive source of energy inefficiency. They miss out on significant solar energy potential while contributing to the 'greenhouse effect' inside buildings, forcing air conditioning systems to work overtime. In dense cities, roof space for traditional solar panels is extremely limited, leaving millions of square feet of vertical glass surfaces unused for power generation. The lack of decentralized energy production in city centers makes urban grids more vulnerable to outages and increases transmission losses from distant power plants.",
+              "proposedSolution": "The Smart Solar Blind system utilizes ultra-thin, lightweight, and flexible perovskite photovoltaic cells integrated directly into motorized window slats. An AI-driven control module tracks the solar path in real-time using built-in light sensors, adjusting the slat angle to maximize energy capture while simultaneously providing optimal indoor shading and reducing glare. The system interfaces with the building's microgrid via a compact, high-efficiency inverter, converting sunlight directly into usable AC power for local appliances or storing it in integrated wall batteries.",
+              "description": "This revolutionary product transforms every window into a power plant. Beyond energy generation, the 'Active Shading' algorithm reduces solar heat gain by up to 45%, drastically cutting cooling costs and carbon emissions. The blinds are connected via Zigbee or Matter protocols, allowing residents to monitor energy production, battery levels, and shade automation through a sleek smartphone app. It's an ideal solution for retrofitting existing commercial and residential towers that were never designed with renewable energy in mind. The design is minimalist and premium, blending perfectly with modern architectural aesthetics while actively healing the planet.",
+              "images": ["https://images.unsplash.com/photo-1513584684374-8bdb7483733e?q=80&w=2070&auto=format&fit=crop"],
+              "isPaid": true,
+              "price": 25.0,
+              "categoryId": getCatId("Energy"),
+              "authorId": admin.id,
+              "status": "APPROVED" as IdeaStatus
+            },
+            {
+              "title": "Community Compost Network App",
+              "problemStatement": "Food waste accounts for nearly 24% of municipal solid waste in landfills, where it decomposes anaerobically and produces methane—a greenhouse gas 25 times more potent than CO2. Many urban dwellers are eager to compost but lack the space, time, or specialized knowledge required for healthy soil production, while community gardens and local farmers are often in dire need of high-quality organic fertilizer to restore nutrient-depleted soil health. This disconnect creates an linear, wasteful system instead of a circular, regenerative one.",
+              "proposedSolution": "The 'EcoLoop' platform is a hyper-local logistics and education network that bridges the gap between food waste producers and organic decomposers. Using a GPS-enabled marketplace, urban residents can find nearby 'Compost Hosts'—individuals, gardens, or urban micro-farms with active, healthy bins. The app facilitates regular drop-offs or small-scale cargo bike pickups, tracks the volume of waste diverted from landfills, and provides step-by-step guidance and AI-powered 'scrap identification' to ensure proper sorting and contamination prevention.",
+              "description": "EcoLoop turns a waste problem into a community resource. Users earn 'Green Points' for every kilogram of waste they contribute, which can be redeemed for local organic produce, heirloom seeds, or discounted gardening supplies from partner eco-shops. For Hosts, the app provides a management tool with IoT integration to monitor bin health, moisture, and temperature. By localizing the nutrient cycle, we reduce the carbon footprint associated with industrial waste transport and foster a stronger, more resilient local food system. The platform also offers educational workshops, virtual masterclasses, and a vibrant community forum for soil enthusiasts and sustainable living advocates.",
+              "images": ["https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?q=80&w=1974&auto=format&fit=crop"],
+              "isPaid": false,
+              "price": 0,
+              "categoryId": getCatId("Waste"),
+              "authorId": admin.id,
+              "status": "APPROVED" as IdeaStatus
+            },
+            {
+              "title": "Hydrogen Cargo Bike Fleet",
+              "problemStatement": "The 'last-mile' delivery sector is currently dominated by heavy diesel vans that congest narrow city streets, contribute to noise pollution, and emit high levels of NOx and particulate matter. While battery-electric vans are an improvement, their long charging times, heavy battery packs, and limited payload-to-weight ratios significantly restrict their efficiency in high-volume, time-sensitive urban logistics. Traditional delivery vehicles are increasingly slowed by traffic, making urban distribution one of the most carbon-intensive links in the global supply chain.",
+              "proposedSolution": "This solution proposes a commercial fleet of heavy-duty, industrial-grade cargo bikes powered by swappable hydrogen fuel cells. Unlike battery-electric vehicles that take hours to charge, these hydrogen bikes can be refueled in under 90 seconds at centralized 'Green Hydrogen' hubs. The fuel cell provides a consistent 350-watt power boost, allowing couriers to carry up to 250kg of cargo over 100km, even in hilly terrains or difficult weather conditions. The system includes an AI routing engine that optimizes for bike-friendly paths, ensuring the fastest delivery times with zero emissions.",
+              "description": "Hydrogen-powered delivery represents the absolute future of green logistics. These bikes can utilize existing cycling infrastructure, bypassing the traffic jams and parking restrictions that plague delivery trucks in dense downtown areas. The only emission produced during operation is pure water vapor. We provide a complete 'Zero-Emission Logistics' package, including the bikes themselves, the hydrogen refueling infrastructure, and a cloud-based fleet management platform that tracks carbon savings in real-time. This enables companies to reach their ambitious net-zero targets while increasing delivery speed and reducing operational costs compared to traditional van fleets. It is the ultimate synthesis of efficiency and ecology.",
+              "images": ["https://images.unsplash.com/photo-1616455579100-2ceaa4eb2137?q=80&w=2070&auto=format&fit=crop"],
+              "isPaid": true,
+              "price": 49.99,
+              "categoryId": getCatId("Transportation"),
+              "authorId": admin.id,
+              "status": "APPROVED" as IdeaStatus
+            },
+            {
+              "title": "IoT Greywater Recycling System",
+              "problemStatement": "Potable water is a finite resource being wasted on non-essential tasks like flushing toilets and watering lawns. In a typical household, nearly 60% of daily water usage results in 'greywater'—relatively clean wastewater from sinks, showers, and washing machines. Sending this water directly into the sewage system increases the burden on treatment plants and wastes an incredible opportunity for on-site reuse. As global water stress increases due to climate change, relying exclusively on municipal water systems is becoming a major resilience risk for modern cities.",
+              "proposedSolution": "The 'AquaSense' system is a compact, IoT-integrated greywater filtration and disinfection unit designed for residential and light commercial use. It intercepts wastewater from drains using a smart diverter, passes it through a multi-stage bio-filtration system and high-intensity UV-C sterilization chamber, and stores the treated water in a pressurized tank for secondary use. Integrated sensors continuously monitor water turbidity, conductivity, and pH levels, ensuring the water is perfectly safe for its intended purpose while an automated valve system manages overflow during heavy usage periods.",
+              "description": "AquaSense significantly reduces the domestic water footprint by allowing a single gallon of water to do double duty. The system is designed for high-end aesthetics and easy installation in both new builds and retrofits. Users can track their water savings, filtration efficiency, and savings milestones via a sleek mobile dashboard, which also provides predictive leak detection alerts. By reducing reliance on municipal water supplies by up to 40%, AquaSense not only pays for itself through lower utility bills but also creates a more sustainable and resilient urban water infrastructure. It empowers homeowners to be part of the solution to the global water crisis without sacrificing convenience or comfort.",
+              "images": ["https://images.unsplash.com/photo-1558449028-ac689f074d0e?q=80&w=2070&auto=format&fit=crop"],
+              "isPaid": true,
+              "price": 35.0,
+              "categoryId": getCatId("Water"),
+              "authorId": admin.id,
+              "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Vertical Hydroponic Farm Modules",
+                "problemStatement": "Industrial agriculture is responsible for massive deforestation, biodiversity loss, and excessive water consumption. Long-distance transport of 'fresh' produce results in significant nutrient loss and high carbon emissions. As our urban populations grow, the traditional model of farming far away from where people live is becoming increasingly unsustainable and prone to supply chain disruptions.",
+                "proposedSolution": "The 'UrbanHarvest' project deploy modular, stackable hydroponic farming units designed to fit inside standard shipping containers or empty storefronts. These units utilize a recirculating nutrient film technique (NFT) and spectrum-optimized LED lighting to grow crops up to 5 times faster than traditional farming. The entire environment—CO2 levels, humidity, and nutrient mix—is managed by a centralized AI agent that maximizes yield while minimizing input costs.",
+                "description": "UrbanHarvest brings the farm to the city. By growing food exactly where it's consumed, we eliminate 99% of food miles and use 95% less water than soil-based agriculture. The modular nature allows for scalable production of leafy greens, herbs, and small vegetables year-round, unaffected by local climate or seasons. These farms can be integrated into residential complexes, hospitals, or grocery stores, providing hyper-fresh, pesticide-free produce to local communities while creating green jobs in the heart of the city.",
+                "images": ["https://images.unsplash.com/photo-1582281227059-6764101c073d?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": false,
+                "price": 0,
+                "categoryId": getCatId("Agriculture"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Micro-Wind Streetlight Turbines",
+                "problemStatement": "Municipal streetlighting is one of the largest electricity expenses for city governments, often powered by carbon-intensive grids. Meanwhile, the 'canyon effect' in urban environments creates constant, predictable wind currents between buildings and along major avenues. This kinetic energy currently goes untapped while cities struggle to find space for large-scale renewable energy installations.",
+                "proposedSolution": "The 'AeroLight' system integrates small, vertical-axis wind turbines (VAWT) directly onto existing lamp posts. These turbines are specifically designed to capture low-speed, turbulent urban winds from any direction. The energy generated is stored in a high-efficiency lithium-iron-phosphate (LFP) battery mounted at the base of the pole, which powers the LED lamp at night. Any excess energy can be fed back into the municipal grid or used to power local EV charging ports.",
+                "description": "AeroLight turns every lamp post into a distributed power plant. The vertical-axis design is near-silent and safe for urban wildlife. Because the energy is generated and stored locally, the system remains operational even during grid outages, improving public safety. The modular design allows for rapid installation without the need for intensive structural changes. It provides a highly visible symbol of a city's commitment to innovation and sustainability while significantly reducing operational costs and carbon footprints.",
+                "images": ["https://images.unsplash.com/photo-1466611621918-a0a01945cb97?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": true,
+                "price": 19.99,
+                "categoryId": getCatId("Energy"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Mushroom-Based Biodegradable Packaging",
+                "problemStatement": "The global reliance on Expanded Polystyrene (Styrofoam) for protective packaging is causing a massive environmental disaster. Styrofoam is made from fossil fuels, is non-recyclable, and takes over 500 years to break down. It frequently ends up in our oceans, where it fragments into microplastics and enters the food chain, poisoning marine life and eventually humans.",
+                "proposedSolution": "The 'MycoPack' solution uses a natural, biological process to 'grow' packaging. We take agricultural waste—such as hemp hurds or corn husks—and inoculate it with mycelium (the root structure of mushrooms). The mycelium acts as a natural self-assembling glue, growing through and around the waste to form a solid, durable material in the shape of a custom mold. The process requires almost no energy, uses no chemicals, and results in a high-performance material that rivals plastic foam in every metric.",
+                "description": "MycoPack is packaging that feeds the earth instead of polluting it. It is thermally insulating, fire-resistant, and water-resistant, yet it is fully home-compostable and will break down into nutrient-rich soil in less than 45 days. It is a true 'cradle-to-cradle' solution that transforms agricultural waste into a premium product. Leading electronics and appliance brands are already adopting this technology to eliminate their plastic footprint. It's a scalable, cost-effective, and aesthetically pleasing alternative that proves sustainability doesn't have to mean compromise.",
+                "images": ["https://images.unsplash.com/photo-1534067783941-51c90530da30?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": false,
+                "price": 0,
+                "categoryId": getCatId("Waste"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Electric School Bus V2G Network",
+                "problemStatement": "The current fleet of yellow school buses is a major source of localized air pollution, exposing children to harmful diesel fumes daily. Furthermore, these buses represent a massive underutilized capital investment, sitting idle for over 80% of the year. During times of high grid stress, power companies often struggle to find enough energy storage to stabilize the influx of intermittent renewable power.",
+                "proposedSolution": "This project aims to transition school districts to electric bus fleets equipped with bidirectional charging (Vehicle-to-Grid or V2G) technology. When the buses are parked—which is most of the day and all summer—they act as a massive decentralized battery storage network. They can soak up excess solar power during the day and discharge it back into the grid during peak evening demand hours, providing critical stabilization services and a new revenue stream for schools.",
+                "description": "V2G turns school buses into community assets. The revenue generated from grid services can help offset the higher upfront cost of electric buses, making the transition financially viable for even underfunded districts. More importantly, it provides a cleaner, quieter ride for students, improving their health and wellbeing. It's a perfect example of how a circular economy approach can solve multiple problems at once—air quality, climate change, and municipal budget constraints—while speeding up the adoption of a green grid.",
+                "images": ["https://images.unsplash.com/photo-1579361713437-024346808791?q=80&w=1974&auto=format&fit=crop"],
+                "isPaid": true,
+                "price": 55.0,
+                "categoryId": getCatId("Transportation"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Ocean Plastic Drone Collector",
+                "problemStatement": "Marine plastic pollution has reached a critical tipping point. Every year, millions of tons of plastic enter our oceans, primarily through river systems and urban runoff. Once in the open ocean, it becomes near-impossible to collect. By the time it reaches the beaches, it has already done immense damage to coral reefs and coastal ecosystems. Manual cleanup is slow, dangerous, and expensive.",
+                "proposedSolution": "The 'SeaCleaner' is an autonomous, solar-powered aquatic drone fleet designed specifically for harbors, marinas, and river mouths. Using computer vision and high-definition cameras, the drones identify and navigate toward floating debris, skimming the surface with a non-invasive capture system. They are small enough to reach tight spaces where larger vessels cannot go and are programmed to avoid marine life using acoustic sensors. When full, the drones automatically return to a docking station to deposit the waste into a recycling bin.",
+                "description": "SeaCleaner is a persistent, 24/7 defense system for our waters. A single drone can collect up to 100kg of trash per day without any human intervention. The data collected by the drones—regarding waste type and location—is uploaded to a cloud platform, giving city planners valuable insights into the sources of pollution. By stopping plastic at the source, we prevent it from breaking down into microplastics and entering the global food chain. It's a scalable, robotic solution that makes ocean conservation efficient and data-driven.",
+                "images": ["https://images.unsplash.com/photo-1621451537084-482c73073a0f?q=80&w=1974&auto=format&fit=crop"],
+                "isPaid": false,
+                "price": 0,
+                "categoryId": getCatId("Water"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Precision Regenerative Grazing AI",
+                "problemStatement": "Modern livestock farming often involves overgrazing, which leads to soil compaction, erosion, and the release of underground carbon stores into the atmosphere. On the other hand, well-managed grazing is one of the best ways to regenerate soil health and sequester carbon. However, traditional regenerative methods require intensive manual labor for fencing and constant herd monitoring, which is unaffordable for many farmers.",
+                "proposedSolution": "The 'GrassRoot' platform uses virtual fencing technology and AI-driven pasture analysis to automate regenerative grazing. Livestock wear GPS-enabled collars that deliver gentle sound or vibration cues to keep them within a defined, constantly moving area. A central AI analyzes satellite imagery and soil sensor data to decide exactly when and where the herd should move, ensuring that no area is overgrazed and that the soil has optimal time to recover and capture CO2.",
+                "description": "GrassRoot enables carbon-negative beef and dairy production. By eliminating the need for expensive physical fencing, farmers can implement complex rotational grazing patterns with a single click on their smartphone. This process improves soil organic matter, increases biodiversity, and drastically improves the land's ability to hold water, making farms more resilient to drought. It's a technology that mimics the natural movement of wild herds, restoring the ecological balance of our grasslands while providing farmers with higher-quality forage and lower operational costs.",
+                "images": ["https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": true,
+                "price": 29.99,
+                "categoryId": getCatId("Agriculture"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Algae-Based Air Purification Towers",
+                "problemStatement": "Urban air quality is a global health crisis, with PM2.5 and nitrogen dioxide levels regularly exceeding safety limits in major cities. While planting trees is the eventual solution, many dense urban areas simply don't have the space or soil quality to support large forests. We need a way to rapidly and effectively scrub carbon and pollutants from the air in a very small physical footprint.",
+                "proposedSolution": "The 'BioBreeze' tower is an urban architectural installation that functions as a high-capacity bio-reactor. The tower is filled with a specialized strain of hyper-productive microalgae that is up to 50 times more efficient at capturing CO2 than a tree of the same size. Air is pulled through the base of the tower and passed through the algae-saturated water, where the algae consume the carbon for growth and release pure oxygen. The process also filters out particulate matter and nitrogen oxides, significantly improving local air quality.",
+                "description": "BioBreeze is where biology meets engineering. Each tower provides the air-purification equivalent of a small forest while occupying only a few square meters. The algae growth can be harvested periodically and converted into biofuel, high-protein animal feed, or organic fertilizer, creating a valuable byproduct from thin air. The towers are aesthetically stunning, glowing with a bioluminescent green light at night, and serving as a functional piece of public art that actively heals the city's atmosphere. They are easy to install in public squares, near highways, or on rooftops.",
+                "images": ["https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": true,
+                "price": 40.0,
+                "categoryId": getCatId("Energy"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Blockchain Wood Salvage Marketplace",
+                "problemStatement": "Every year, millions of high-quality trees are cut down in urban areas due to disease, construction, or safety concerns. Currently, most of this urban timber is either chipped for mulch, burned, or sent to landfills, despite its incredible value for furniture and high-end construction. The lack of a transparent supply chain and standardized grading makes it difficult for artisans and builders to source and trust salvaged wood.",
+                "proposedSolution": "The 'TimberTrace' marketplace is a blockchain-based platform for urban wood salvage. We connect arborists and tree-clearing companies directly with local woodworkers, furniture makers, and architectural firms. Every tree is tagged with a unique digital identifier at the site of removal, recording its species, GPS location, and the reason for removal. This data is stored on a transparent ledger, providing a 'Passport of Provenance' for the resulting timber and ensuring it is truly salvaged and sustainable.",
+                "description": "TimberTrace gives old trees a second life. By providing a transparent marketplace, we unlock the economic potential of urban forests and prevent high-value materials from going to waste. Builders and interior designers can provide their clients with a story—showing exactly where the wood in their dining table or flooring came from. This reduces the demand for virgin timber from vulnerable forests and supports a vibrant local craft economy. The platform also includes tools for moisture content verification and professional grading, making salvaged wood a reliable choice for any project.",
+                "images": ["https://images.unsplash.com/photo-1541535881962-3bb380b08458?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": false,
+                "price": 0,
+                "categoryId": getCatId("Waste"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Solar-Powered Desalination Units",
+                "problemStatement": "Clean drinking water is becoming the 'blue gold' of the 21st century. Many coastal desert regions have abundant seawater but suffer from acute freshwater shortages. Traditional desalination plants are massive, cost billions to build, and require incredible amounts of fossil-fuel electricity to operate. This makes them inaccessible to small, remote seaside communities and developing islands that need water most urgently.",
+                "proposedSolution": "Our 'SunAqua' units are portable, modular desalination plants powered entirely by integrated solar thermal and photovoltaic energy. Using a multi-stage flash distillation process that is optimized for fluctuating solar heat, the units can produce up to 5,000 liters of pure drinking water per day. The entire system is built into a standard 10ft shipping container for easy deployment and can be linked together to scale as a community grows. It requires no external power source and minimal maintenance.",
+                "description": "SunAqua provides water independence. It’s a literal 'plug-and-play' solution for water-stressed regions. By using renewable energy, we avoid the heavy carbon footprint of standard desalination while ensuring the water stays affordable. The units can be deployed rapidly following natural disasters or integrated into long-term infrastructure for off-grid eco-resorts and remote villages. It's a life-saving technology that democratizes access to fresh water without further harming the planet's climate.",
+                "images": ["https://images.unsplash.com/photo-1518391846015-55a97e198179?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": true,
+                "price": 29.99,
+                "categoryId": getCatId("Water"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Plastic-Free Toothpaste Tablets",
+                "problemStatement": "Typical toothpaste tubes are a composite of plastic and aluminum, making them virtually impossible to recycle. Over 1.5 billion of these tubes are tossed into the trash every single year, where they break down into microplastics over centuries. Additionally, liquid toothpaste contains over 50% water, which significantly increases shipping weight and transport-related carbon emissions.",
+                "proposedSolution": "The 'PureTab' solution replaces the tube with a small, waterless tablet. These tablets are formulated with natural whitening and mineralizing agents and are packaged in fully compostable paper bags or refillable glass jars. Because they are solid and lightweight, they reduce the carbon footprint of transport by over 70% and completely eliminate the need for single-use plastic packaging.",
+                "description": "PureTab is the zero-waste way to brush. To use, you simply bite a tablet, brush with a wet toothbrush as usual, and enjoy a fresh, clean feeling. It's perfect for travel, as it avoids liquid restrictions, and is better for the environment in every way. Our subscription model ensures you never run out, and the compostable refills fit right into your glass jar at home. It’s a small, daily habit change that, when scaled, removes billions of pieces of plastic from our waste stream.",
+                "images": ["https://images.unsplash.com/photo-1600115049380-0447382d625d?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": false,
+                "price": 0,
+                "categoryId": getCatId("Waste"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Bamboo-Based Bicycle Frames",
+                "problemStatement": "The manufacturing of traditional steel, aluminum, and carbon fiber bicycle frames is an energy-intensive process that relies on mining and heavy industrial refining. Despite being a 'green' form of transport, the bikes themselves often carry a high carbon debt before the first mile is ever ridden. Furthermore, carbon fiber frames are near-impossible to recycle at the end of their life.",
+                "proposedSolution": "The 'EcoCycle' project manufactures high-performance bicycle frames using locally grown, sustainable bamboo and recycled bio-resins. Bamboo is one of the fastest-growing plants on earth and naturally sequesters massive amounts of CO2 during its growth. When properly treated and joined with hemp-carbon fiber lugs, it creates a frame that is as strong as steel, lighter than aluminum, and has natural vibration-damping properties that provide a superior ride quality on bumpy city streets.",
+                "description": "EcoCycle is a masterclass in regenerative engineering. Every frame is unique and supports rural economies where bamboo is grown. Unlike carbon fiber, these frames are durable, repairable, and far more environmentally friendly to produce. We offer both pre-built models and DIY kits that allow enthusiasts to build their own sustainable transport. By choosing a bamboo bike, riders are making a statement about the world they want to see—one where even high-performance engineering works in harmony with the natural world.",
+                "images": ["https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": true,
+                "price": 39.99,
+                "categoryId": getCatId("Transportation"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "AI-Driven Crop Pest Detection",
+                "problemStatement": "Farmers globally lose between 20% and 40% of their annual crop yields to pests and diseases. For many smallholder farmers, a single infestation can mean financial ruin. Currently, the most common response is 'blanket spraying'—applying broad-spectrum chemical pesticides across the entire farm. This is expensive, kills helpful pollinators, poisons the soil, and often led to pests developing resistance.",
+                "proposedSolution": "The 'PestGaurd' app uses advanced computer vision and decentralized AI to identify agricultural issues early. Farmers simply take a photo of an affected leaf or fruit with their smartphone. The AI identifies the specific pest or disease instantly and provides a geolocated risk assessment based on local weather data. Instead of chemicals, the app suggests targeted organic treatments, such as introducing beneficial insects or specific natural sprays, precisely when and where they are needed.",
+                "description": "PestGuard is a digital agronomist in every pocket. It empowers farmers to transition toward more sustainable, chemical-free agriculture while actually increasing their profitability. By tracking infestations across a region, the platform can provide early warning alerts to neighboring farms, preventing localized outbreaks from becoming regional disasters. It protects our global food security and our environment by significantly reducing the chemical load on our soil and water systems.",
+                "images": ["https://images.unsplash.com/photo-1560493676-04071c5f467b?q=80&w=1974&auto=format&fit=crop"],
+                "isPaid": false,
+                "price": 0,
+                "categoryId": getCatId("Agriculture"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            },
+            {
+                "title": "Thermal Energy Storage Bricks",
+                "problemStatement": "The biggest hurdle to a 100% renewable grid is energy storage. Lithium-ion batteries are excellent for short-term storage but are expensive, rely on scarce minerals, and degrade over time. In industrial heat applications—which account for massive global energy use—converting electricity back and forth into batteries is incredibly inefficient. We need a way to store clean energy that is low-cost, long-duration, and uses abundant materials.",
+                "proposedSolution": "The 'BrickBattery' system uses specialized, high-density ceramic firebricks to store electricity as heat. During times of high solar or wind production, excess electricity is used to heat these bricks to temperatures over 1500°C within an insulated container. The energy can be stored with very low loss for days or even weeks. When power is needed, the heat is extracted either as high-grade steam for industrial processes or passed through a turbine to generate electricity.",
+                "description": "BrickBattery is the world's most sustainable 'big battery.' It has a lifespan of over 40 years with no capacity degradation and is 100% recyclable. By providing a cheap way to store renewable energy, it allows heavy industries—like steel and cement making—to decarbonize their processes for the first time. It can also be scaled down for district heating networks, providing a zero-carbon way to keep cities warm.",
+                "images": ["https://images.unsplash.com/photo-1517420812314-8e84b1743a02?q=80&w=2070&auto=format&fit=crop"],
+                "isPaid": true,
+                "price": 15.0,
+                "categoryId": getCatId("Energy"),
+                "authorId": admin.id,
+                "status": "APPROVED" as IdeaStatus
+            }
+        ];
+
+        for (const data of ideasData) {
+            const existing = await prisma.idea.findFirst({ where: { title: data.title } });
+            if (!existing) {
+                await prisma.idea.create({ data });
+                console.log(`✅ Created idea: ${data.title}`);
+            } else {
+                await prisma.idea.update({
+                    where: { id: existing.id },
+                    data: { 
+                        images: data.images,
+                        description: data.description,
+                        proposedSolution: data.proposedSolution,
+                        problemStatement: data.problemStatement,
+                        categoryId: data.categoryId,
+                        isPaid: data.isPaid,
+                        price: data.price
+                    }
+                });
+                console.log(`🔄 Updated content and images for: ${data.title}`);
+            }
+        }
+
+        console.log("✨ Seeding completed successfully!");
+    } catch (error) {
+        console.error("❌ Seeding ideas failed:", error);
+    } finally {
+        await prisma.$disconnect();
+    }
+};
+
+seedIdeas();

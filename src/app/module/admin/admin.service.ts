@@ -11,7 +11,7 @@ const getAllIdeas = async (query: any) => {
         status: ideaStatus,
         searchTerm,
         page = '1',
-        limit = '10',
+        limit = '12',
     } = query;
 
     const pageNum = parseInt(page as string, 10);
@@ -160,7 +160,7 @@ const deleteIdea = async (ideaId: string) => {
 // ========== USER MANAGEMENT ==========
 
 const getAllUsers = async (query: any) => {
-    const { searchTerm, role, status: userStatus, page = '1', limit = '10' } = query;
+    const { searchTerm, role, status: userStatus, page = '1', limit = '12' } = query;
 
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
