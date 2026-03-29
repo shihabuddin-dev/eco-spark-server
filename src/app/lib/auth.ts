@@ -30,6 +30,20 @@ export const auth = betterAuth({
     secret: envVars.BETTER_AUTH_SECRET,
     baseURL: envVars.BETTER_AUTH_URL,
     trustedOrigins: [envVars.FRONTEND_URL],
+    session: {
+      cookieCache: {
+        enabled: true,
+        maxAge: 5 * 60, // 5 minutes
+      },
+    },
+    advanced: {
+      cookiePrefix: "better-auth",
+      useSecureCookies: process.env.NODE_ENV === "production",
+      crossSubDomainCookies: {
+        enabled: false,
+    },
+    disableCSRFCheck: true, // Allow requests without Origin header (Postman, mobile apps, etc.)
+  },
 });
 
 const SALT_ROUNDS = 12;
