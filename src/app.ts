@@ -8,6 +8,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./app/lib/auth";
 
 const app: Application = express();
+app.set("trust proxy", 1);
 
 // app.use(cors({
 //     origin: [envVars.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:5000'],

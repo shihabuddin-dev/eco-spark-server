@@ -2695,6 +2695,7 @@ var notFound = (req, res) => {
 // src/app.ts
 import { toNodeHandler } from "better-auth/node";
 var app = express();
+app.set("trust proxy", 1);
 var allowedOrigins = [
   envVars.FRONTEND_URL || "http://localhost:3000",
   "http://localhost:5000",
