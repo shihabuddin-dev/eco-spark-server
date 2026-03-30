@@ -311,12 +311,18 @@ var getAllIdeas = async (query) => {
     status: ideaStatus,
     searchTerm,
     page = "1",
-    limit = "12"
+    limit = "12",
+    category,
+    categoryId
   } = query;
   const pageNum = parseInt(page, 10);
   const limitNum = parseInt(limit, 10);
   const skip = (pageNum - 1) * limitNum;
   const where = {};
+  const targetCategory = category || categoryId;
+  if (targetCategory) {
+    where.categoryId = targetCategory;
+  }
   if (ideaStatus) {
     where.status = ideaStatus;
   }
@@ -348,7 +354,7 @@ var getAllIdeas = async (query) => {
       page: pageNum,
       limit: limitNum,
       total,
-      totalPage: Math.ceil(total / limitNum)
+      totalPages: Math.ceil(total / limitNum)
     }
   };
 };
@@ -415,6 +421,21 @@ var changeIdeaStatus = async (ideaId, newStatus, feedback) => {
   });
   return updated;
 };
+var updateIdeaData = async (ideaId, payload) => {
+  const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
+  if (!idea) {
+    throw new AppError_default(status.NOT_FOUND, "Idea not found");
+  }
+  const updated = await prisma.idea.update({
+    where: { id: ideaId },
+    data: payload,
+    include: {
+      category: true,
+      author: { select: { id: true, name: true, email: true } }
+    }
+  });
+  return updated;
+};
 var deleteIdea = async (ideaId) => {
   const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
   if (!idea) {
@@ -469,7 +490,7 @@ var getAllUsers = async (query) => {
       page: pageNum,
       limit: limitNum,
       total,
-      totalPage: Math.ceil(total / limitNum)
+      totalPages: Math.ceil(total / limitNum)
     }
   };
 };
@@ -546,6 +567,7 @@ var AdminService = {
   approveIdea,
   rejectIdea,
   changeIdeaStatus,
+  updateIdeaData,
   deleteIdea,
   getAllUsers,
   updateUserStatus,
@@ -602,6 +624,15 @@ var changeIdeaStatus2 = catchAsync(async (req, res) => {
     data: result
   });
 });
+var updateIdeaData2 = catchAsync(async (req, res) => {
+  const result = await AdminService.updateIdeaData(req.params.id, req.body);
+  sendResponse(res, {
+    httpStatusCode: status2.OK,
+    success: true,
+    message: "Idea updated successfully",
+    data: result
+  });
+});
 var getAllUsers2 = catchAsync(async (req, res) => {
   const result = await AdminService.getAllUsers(req.query);
   sendResponse(res, {
@@ -647,6 +678,7 @@ var AdminController = {
   rejectIdea: rejectIdea2,
   deleteIdea: deleteIdea2,
   changeIdeaStatus: changeIdeaStatus2,
+  updateIdeaData: updateIdeaData2,
   getAllUsers: getAllUsers2,
   updateUserStatus: updateUserStatus2,
   updateUserRole: updateUserRole2,
@@ -840,6 +872,34 @@ var AdminValidation = {
   updateUserRoleValidation
 };
 
+// src/app/module/idea/idea.validation.ts
+import z2 from "zod";
+var createIdeaValidation = z2.object({
+  title: z2.string({ error: "Title is required" }).min(5, "Title must be at least 5 characters"),
+  problemStatement: z2.string({ error: "Problem statement is required" }).min(10, "Problem statement must be at least 10 characters"),
+  proposedSolution: z2.string({ error: "Proposed solution is required" }).min(10, "Proposed solution must be at least 10 characters"),
+  description: z2.string({ error: "Description is required" }).min(20, "Description must be at least 20 characters"),
+  images: z2.array(z2.string().url()).optional().default([]),
+  isPaid: z2.boolean().optional().default(false),
+  price: z2.number().positive("Price must be positive").optional(),
+  categoryId: z2.string({ error: "Category is required" })
+});
+var updateIdeaValidation = z2.object({
+  title: z2.string().min(5, "Title must be at least 5 characters").optional(),
+  problemStatement: z2.string().min(10).optional(),
+  proposedSolution: z2.string().min(10).optional(),
+  description: z2.string().min(20).optional(),
+  images: z2.array(z2.string().url()).optional(),
+  isPaid: z2.boolean().optional(),
+  price: z2.number().positive("Price must be positive").optional().nullable(),
+  categoryId: z2.string().optional(),
+  status: z2.enum(["DRAFT", "UNDER_REVIEW", "APPROVED", "REJECTED"]).optional()
+});
+var IdeaValidation = {
+  createIdeaValidation,
+  updateIdeaValidation
+};
+
 // src/app/module/admin/admin.route.ts
 var router = Router();
 router.use(checkAuth("ADMIN"));
@@ -848,6 +908,7 @@ router.get("/ideas", AdminController.getAllIdeas);
 router.patch("/ideas/:id/approve", AdminController.approveIdea);
 router.patch("/ideas/:id/reject", validateRequest(AdminValidation.rejectIdeaValidation), AdminController.rejectIdea);
 router.patch("/ideas/:id/status", AdminController.changeIdeaStatus);
+router.patch("/ideas/:id", validateRequest(IdeaValidation.updateIdeaValidation), AdminController.updateIdeaData);
 router.delete("/ideas/:id", AdminController.deleteIdea);
 router.get("/users", AdminController.getAllUsers);
 router.patch("/users/:id/status", validateRequest(AdminValidation.updateUserStatusValidation), AdminController.updateUserStatus);
@@ -1008,20 +1069,20 @@ var AuthController = {
 };
 
 // src/app/module/auth/auth.validation.ts
-import z2 from "zod";
-var registerValidation = z2.object({
-  name: z2.string({ error: "Name is required" }).min(2, "Name must be at least 2 characters"),
-  email: z2.string({ error: "Email is required" }).email("Invalid email format"),
-  password: z2.string({ error: "Password is required" }).min(6, "Password must be at least 6 characters"),
-  profileImage: z2.string().url().optional()
+import z3 from "zod";
+var registerValidation = z3.object({
+  name: z3.string({ error: "Name is required" }).min(2, "Name must be at least 2 characters"),
+  email: z3.string({ error: "Email is required" }).email("Invalid email format"),
+  password: z3.string({ error: "Password is required" }).min(6, "Password must be at least 6 characters"),
+  profileImage: z3.string().url().optional()
 });
-var loginValidation = z2.object({
-  email: z2.string({ error: "Email is required" }).email("Invalid email format"),
-  password: z2.string({ error: "Password is required" })
+var loginValidation = z3.object({
+  email: z3.string({ error: "Email is required" }).email("Invalid email format"),
+  password: z3.string({ error: "Password is required" })
 });
-var changePasswordValidation = z2.object({
-  currentPassword: z2.string({ error: "Current password is required" }),
-  newPassword: z2.string({ error: "New password is required" }).min(6, "Password must be at least 6 characters")
+var changePasswordValidation = z3.object({
+  currentPassword: z3.string({ error: "Current password is required" }),
+  newPassword: z3.string({ error: "New password is required" }).min(6, "Password must be at least 6 characters")
 });
 var AuthValidation = {
   registerValidation,
@@ -1142,14 +1203,14 @@ var CategoryController = {
 };
 
 // src/app/module/category/category.validation.ts
-import z3 from "zod";
-var createCategoryValidation = z3.object({
-  name: z3.string({ error: "Category name is required" }).min(2, "Name must be at least 2 characters"),
-  description: z3.string().optional()
+import z4 from "zod";
+var createCategoryValidation = z4.object({
+  name: z4.string({ error: "Category name is required" }).min(2, "Name must be at least 2 characters"),
+  description: z4.string().optional()
 });
-var updateCategoryValidation = z3.object({
-  name: z3.string().min(2, "Name must be at least 2 characters").optional(),
-  description: z3.string().optional()
+var updateCategoryValidation = z4.object({
+  name: z4.string().min(2, "Name must be at least 2 characters").optional(),
+  description: z4.string().optional()
 });
 var CategoryValidation = {
   createCategoryValidation,
@@ -1206,6 +1267,7 @@ var getAllApprovedIdeas = async (query) => {
   const {
     searchTerm,
     category,
+    categoryId,
     isPaid,
     sortBy = "createdAt",
     sortOrder = "desc",
@@ -1227,8 +1289,9 @@ var getAllApprovedIdeas = async (query) => {
       { problemStatement: { contains: searchTerm, mode: "insensitive" } }
     ];
   }
-  if (category) {
-    where.categoryId = category;
+  const targetCategory = category || categoryId;
+  if (targetCategory) {
+    where.categoryId = targetCategory;
   }
   if (isPaid !== void 0) {
     where.isPaid = isPaid === "true";
@@ -1289,7 +1352,7 @@ var getAllApprovedIdeas = async (query) => {
       page: pageNum,
       limit: limitNum,
       total,
-      totalPage: Math.ceil(total / limitNum)
+      totalPages: Math.ceil(total / limitNum)
     }
   };
 };
@@ -1335,51 +1398,53 @@ var getIdeaById = async (id, userId) => {
   if (!idea) {
     throw new AppError_default(status9.NOT_FOUND, "Idea not found");
   }
+  const upvotes = idea.votes.filter((v) => v.voteType === "UPVOTE").length;
+  const downvotes = idea.votes.filter((v) => v.voteType === "DOWNVOTE").length;
+  const netVotes = upvotes - downvotes;
+  const userVote = userId ? idea.votes.find((v) => v.userId === userId) : null;
   if (idea.isPaid && idea.authorId !== userId) {
-    if (!userId) {
-      return {
-        id: idea.id,
-        title: idea.title,
-        category: idea.category,
-        author: idea.author,
-        isPaid: idea.isPaid,
-        price: idea.price,
-        status: idea.status,
-        createdAt: idea.createdAt,
-        isPaidContent: true,
-        message: "This is a paid idea. Please purchase to view full content."
-      };
+    let hasPaid = false;
+    if (userId) {
+      const payment = await prisma.payment.findFirst({
+        where: {
+          userId,
+          ideaId: id,
+          status: "COMPLETED"
+        }
+      });
+      if (payment) hasPaid = true;
     }
-    const payment = await prisma.payment.findFirst({
-      where: {
-        userId,
-        ideaId: id,
-        status: "COMPLETED"
-      }
-    });
-    if (!payment) {
+    if (!hasPaid) {
       return {
         id: idea.id,
         title: idea.title,
+        problemStatement: idea.problemStatement,
+        proposedSolution: idea.proposedSolution,
+        description: idea.description,
+        images: idea.images,
         category: idea.category,
         author: idea.author,
         isPaid: idea.isPaid,
         price: idea.price,
         status: idea.status,
+        adminFeedback: idea.adminFeedback,
         createdAt: idea.createdAt,
+        updatedAt: idea.updatedAt,
+        upvotes,
+        downvotes,
+        netVotes,
+        _count: idea._count,
         isPaidContent: true,
-        message: "This is a paid idea. Please purchase to view full content."
+        message: "This is a paid idea. Purchase to support and unlock discussions."
       };
     }
   }
-  const upvotes = idea.votes.filter((v) => v.voteType === "UPVOTE").length;
-  const downvotes = idea.votes.filter((v) => v.voteType === "DOWNVOTE").length;
-  const userVote = userId ? idea.votes.find((v) => v.userId === userId) : null;
+  const { votes, ...ideaData } = idea;
   return {
-    ...idea,
+    ...ideaData,
     upvotes,
     downvotes,
-    netVotes: upvotes - downvotes,
+    netVotes,
     userVote: userVote ? userVote.voteType : null,
     isPaidContent: false
   };
@@ -1412,7 +1477,7 @@ var getMyIdeas = async (authorId, query) => {
       page: pageNum,
       limit: limitNum,
       total,
-      totalPage: Math.ceil(total / limitNum)
+      totalPages: Math.ceil(total / limitNum)
     }
   };
 };
@@ -1631,33 +1696,6 @@ var IdeaController = {
   submitForReview: submitForReview2,
   getTopVotedIdeas: getTopVotedIdeas2,
   getUserStats: getUserStats2
-};
-
-// src/app/module/idea/idea.validation.ts
-import z4 from "zod";
-var createIdeaValidation = z4.object({
-  title: z4.string({ error: "Title is required" }).min(5, "Title must be at least 5 characters"),
-  problemStatement: z4.string({ error: "Problem statement is required" }).min(10, "Problem statement must be at least 10 characters"),
-  proposedSolution: z4.string({ error: "Proposed solution is required" }).min(10, "Proposed solution must be at least 10 characters"),
-  description: z4.string({ error: "Description is required" }).min(20, "Description must be at least 20 characters"),
-  images: z4.array(z4.string().url()).optional().default([]),
-  isPaid: z4.boolean().optional().default(false),
-  price: z4.number().positive("Price must be positive").optional(),
-  categoryId: z4.string({ error: "Category is required" })
-});
-var updateIdeaValidation = z4.object({
-  title: z4.string().min(5, "Title must be at least 5 characters").optional(),
-  problemStatement: z4.string().min(10).optional(),
-  proposedSolution: z4.string().min(10).optional(),
-  description: z4.string().min(20).optional(),
-  images: z4.array(z4.string().url()).optional(),
-  isPaid: z4.boolean().optional(),
-  price: z4.number().positive("Price must be positive").optional().nullable(),
-  categoryId: z4.string().optional()
-});
-var IdeaValidation = {
-  createIdeaValidation,
-  updateIdeaValidation
 };
 
 // src/app/middleware/optionalAuth.ts
