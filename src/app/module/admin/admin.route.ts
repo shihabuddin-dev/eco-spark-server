@@ -3,6 +3,7 @@ import { AdminController } from './admin.controller';
 import { checkAuth } from '../../middleware/checkAuth';
 import { validateRequest } from '../../middleware/validateRequest';
 import { AdminValidation } from './admin.validation';
+import { IdeaValidation } from '../idea/idea.validation';
 
 const router: Router = Router();
 
@@ -17,6 +18,7 @@ router.get('/ideas', AdminController.getAllIdeas);
 router.patch('/ideas/:id/approve', AdminController.approveIdea);
 router.patch('/ideas/:id/reject', validateRequest(AdminValidation.rejectIdeaValidation), AdminController.rejectIdea);
 router.patch('/ideas/:id/status', AdminController.changeIdeaStatus);
+router.patch('/ideas/:id', validateRequest(IdeaValidation.updateIdeaValidation), AdminController.updateIdeaData);
 router.delete('/ideas/:id', AdminController.deleteIdea);
 
 // User Management

@@ -54,7 +54,7 @@ const getAllIdeas = async (query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPage: Math.ceil(total / limitNum),
+            totalPages: Math.ceil(total / limitNum),
         },
     };
 };
@@ -141,6 +141,25 @@ const changeIdeaStatus = async (ideaId: string, newStatus: any, feedback?: strin
     return updated;
 };
 
+const updateIdeaData = async (ideaId: string, payload: Partial<Prisma.IdeaUpdateInput>) => {
+    const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
+
+    if (!idea) {
+        throw new AppError(status.NOT_FOUND, 'Idea not found');
+    }
+
+    const updated = await prisma.idea.update({
+        where: { id: ideaId },
+        data: payload,
+        include: {
+            category: true,
+            author: { select: { id: true, name: true, email: true } },
+        },
+    });
+
+    return updated;
+};
+
 const deleteIdea = async (ideaId: string) => {
     const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
 
@@ -209,7 +228,7 @@ const getAllUsers = async (query: any) => {
             page: pageNum,
             limit: limitNum,
             total,
-            totalPage: Math.ceil(total / limitNum),
+            totalPages: Math.ceil(total / limitNum),
         },
     };
 };
@@ -301,6 +320,7 @@ export const AdminService = {
     approveIdea,
     rejectIdea,
     changeIdeaStatus,
+    updateIdeaData,
     deleteIdea,
     getAllUsers,
     updateUserStatus,

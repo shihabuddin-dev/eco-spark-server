@@ -20,6 +20,7 @@ export const updateIdeaValidation = z.object({
     isPaid: z.boolean().optional(),
     price: z.number().positive('Price must be positive').optional().nullable(),
     categoryId: z.string().optional(),
+    status: z.enum(['DRAFT', 'UNDER_REVIEW', 'APPROVED', 'REJECTED']).optional(),
 });
 
 export const IdeaValidation = {

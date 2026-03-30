@@ -195,59 +195,62 @@ const getIdeaById = async (id: string, userId?: string) => {
         throw new AppError(status.NOT_FOUND, 'Idea not found');
     }
 
+    // Calculate vote counts
+    const upvotes = idea.votes.filter((v) => v.voteType === 'UPVOTE').length;
+    const downvotes = idea.votes.filter((v) => v.voteType === 'DOWNVOTE').length;
+    const netVotes = upvotes - downvotes;
+    const userVote = userId ? idea.votes.find((v) => v.userId === userId) : null;
+
     // If idea is paid and user is not author, check payment
     if (idea.isPaid && idea.authorId !== userId) {
-        if (!userId) {
-            // Return limited info for unauthenticated users
-            return {
-                id: idea.id,
-                title: idea.title,
-                category: idea.category,
-                author: idea.author,
-                isPaid: idea.isPaid,
-                price: idea.price,
-                status: idea.status,
-                createdAt: idea.createdAt,
-                isPaidContent: true,
-                message: 'This is a paid idea. Please purchase to view full content.',
-            };
+        let hasPaid = false;
+
+        if (userId) {
+            // Check if user has paid for this idea
+            const payment = await prisma.payment.findFirst({
+                where: {
+                    userId,
+                    ideaId: id,
+                    status: 'COMPLETED',
+                },
+            });
+            if (payment) hasPaid = true;
         }
 
-        // Check if user has paid for this idea
-        const payment = await prisma.payment.findFirst({
-            where: {
-                userId,
-                ideaId: id,
-                status: 'COMPLETED',
-            },
-        });
-
-        if (!payment) {
+        if (!hasPaid) {
+            // Return info for unauthenticated or non-paying users
             return {
                 id: idea.id,
                 title: idea.title,
+                problemStatement: idea.problemStatement,
+                proposedSolution: idea.proposedSolution,
+                description: idea.description,
+                images: idea.images,
                 category: idea.category,
                 author: idea.author,
                 isPaid: idea.isPaid,
                 price: idea.price,
                 status: idea.status,
+                adminFeedback: idea.adminFeedback,
                 createdAt: idea.createdAt,
+                updatedAt: idea.updatedAt,
+                upvotes,
+                downvotes,
+                netVotes,
+                _count: idea._count,
                 isPaidContent: true,
-                message: 'This is a paid idea. Please purchase to view full content.',
+                message: 'This is a paid idea. Purchase to support and unlock discussions.',
             };
         }
     }
 
-    // Calculate vote counts
-    const upvotes = idea.votes.filter((v) => v.voteType === 'UPVOTE').length;
-    const downvotes = idea.votes.filter((v) => v.voteType === 'DOWNVOTE').length;
-    const userVote = userId ? idea.votes.find((v) => v.userId === userId) : null;
+    const { votes, ...ideaData } = idea;
 
     return {
-        ...idea,
+        ...ideaData,
         upvotes,
         downvotes,
-        netVotes: upvotes - downvotes,
+        netVotes,
         userVote: userVote ? userVote.voteType : null,
         isPaidContent: false,
     };
