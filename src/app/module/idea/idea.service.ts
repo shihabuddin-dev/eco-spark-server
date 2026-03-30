@@ -44,6 +44,7 @@ const getAllApprovedIdeas = async (query: any) => {
     const {
         searchTerm,
         category,
+        categoryId,
         isPaid,
         sortBy = 'createdAt',
         sortOrder = 'desc',
@@ -71,8 +72,9 @@ const getAllApprovedIdeas = async (query: any) => {
     }
 
     // Filter by category
-    if (category) {
-        where.categoryId = category;
+    const targetCategory = category || categoryId;
+    if (targetCategory) {
+        where.categoryId = targetCategory;
     }
 
     // Filter by paid status

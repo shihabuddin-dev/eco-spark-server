@@ -12,6 +12,8 @@ const getAllIdeas = async (query: any) => {
         searchTerm,
         page = '1',
         limit = '12',
+        category,
+        categoryId,
     } = query;
 
     const pageNum = parseInt(page as string, 10);
@@ -19,6 +21,11 @@ const getAllIdeas = async (query: any) => {
     const skip = (pageNum - 1) * limitNum;
 
     const where: Prisma.IdeaWhereInput = {};
+
+    const targetCategory = category || categoryId;
+    if (targetCategory) {
+        where.categoryId = targetCategory;
+    }
 
     if (ideaStatus) {
         where.status = ideaStatus;
